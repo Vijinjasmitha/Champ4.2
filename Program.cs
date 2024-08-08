@@ -1,99 +1,100 @@
-﻿using System;
+﻿using BankingSystem.Model;
+using BankingSystem.Service;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArraySortOrReverse
+namespace BankingSystem
 {
     class Program
     {
-        // Delegate declaration
-        delegate int[] ArrayOperation(int[] array);
-
         static void Main(string[] args)
         {
-            // user defined
-            Console.Write("Enter the number of elements in the array: ");
-            if (!int.TryParse(Console.ReadLine(), out int numElements) || numElements <= 0)
-            {
-                Console.WriteLine("Invalid number of elements. Exiting...");
-                return;
-            }
+            IBank bank = new Bank();
+            bool running = true;
 
-            // Initialize the array with user-defined size
-            int[] array = new int[numElements];
-
-            // Collect array elements from the user
-            Console.WriteLine("Enter the elements of the array:");
-            for (int i = 0; i < numElements; i++)
+            while (running)
             {
-                Console.Write($"Element {i + 1}: ");
-                if (!int.TryParse(Console.ReadLine(), out array[i]))
+                Console.WriteLine("\n--- Banking System ---");
+                Console.WriteLine("1. Create Account");
+                Console.WriteLine("2. Deposit");
+                Console.WriteLine("3. Withdraw");
+                Console.WriteLine("4. Check Balance");
+                Console.WriteLine("5. Exit");
+                Console.Write("Choose an option: ");
+
+                string option = Console.ReadLine();
+
+                switch (option)
                 {
-                    Console.WriteLine("Invalid input. Exiting...");
-                    return;
+                    case "1":
+                        CreateAccount(bank);
+                        break;
+                    case "2":
+                        PerformTransaction(bank, bank.Deposit);
+                        break;
+                    case "3":
+                        PerformTransaction(bank, bank.Withdraw);
+                        break;
+                    case "4":
+                        CheckAccountBalance(bank);
+                        break;
+                    case "5":
+                        running = false;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid option. Please try again.");
+                        break;
                 }
             }
+        }
 
-            // choice
-            Console.WriteLine("Choose an operation:");
-            Console.WriteLine("1. Sort");
-            Console.WriteLine("2. Reverse");
-            Console.Write("Enter your choice (1 or 2): ");
-            string choice = Console.ReadLine();
-
-            // Delegate variable
-            ArrayOperation operationDelegate = null;
-
-            // Assign delegate based on user choice
-            if (choice == "1")
+        static void CreateAccount(IBank bank)
+        {
+            Console.Write("Enter account number: ");
+            string accountNumber = Console.ReadLine();
+            Console.Write("Enter initial balance: ");
+            if (decimal.TryParse(Console.ReadLine(), out decimal initialBalance))
             {
-                operationDelegate = SortArray;
-            }
-            else if (choice == "2")
-            {
-                operationDelegate = ReverseArray;
+                BankAccount account = new BankAccount(accountNumber, initialBalance);
+                bank.AddAccount(account);
             }
             else
             {
-                Console.WriteLine("Invalid choice. Exiting...");
-                return;
+                Console.WriteLine("Invalid initial balance.");
             }
-
-            // Perform the operation using the delegate
-            int[] result = operationDelegate(array);
-
-            // Display the result
-            Console.WriteLine("Original Array: [{0}]", string.Join(", ", array));
-            if (choice == "1")
-            {
-                Console.WriteLine("Sorted Array: [{0}]", string.Join(", ", result));
-            }
-            else if (choice == "2")
-            {
-                Console.WriteLine("Reversed Array: [{0}]", string.Join(", ", result));
-            }
-
-            // Pause the program to view the result
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
         }
 
-        // Method to sort an array
-        static int[] SortArray(int[] array)
+        static void PerformTransaction(IBank bank, TransactionDelegate transaction)
         {
-            int[] sortedArray = (int[])array.Clone();
-            Array.Sort(sortedArray);
-            return sortedArray;
+            Console.Write("Enter account number: ");
+            string accountNumber = Console.ReadLine();
+            BankAccount account = bank.GetAccount(accountNumber);
+            if (account != null)
+            {
+                Console.Write("Enter amount: ");
+                if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+                {
+                    transaction(account, amount);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid amount.");
+                }
+            }
         }
 
-        // Method to reverse an array
-        static int[] ReverseArray(int[] array)
+        static void CheckAccountBalance(IBank bank)
         {
-            int[] reversedArray = (int[])array.Clone();
-            Array.Reverse(reversedArray);
-            return reversedArray;
+            Console.Write("Enter account number: ");
+            string accountNumber = Console.ReadLine();
+            BankAccount account = bank.GetAccount(accountNumber);
+            if (account != null)
+            {
+                bank.CheckBalance(account);
+            }
         }
     }
 }
