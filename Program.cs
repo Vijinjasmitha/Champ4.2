@@ -1,99 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArraySortOrReverse
+namespace FileHandlingQuestion1
 {
-    class Program
+    public class Program
     {
-        // Delegate declaration
-        delegate int[] ArrayOperation(int[] array);
-
         static void Main(string[] args)
         {
-            // user defined
-            Console.Write("Enter the number of elements in the array: ");
-            if (!int.TryParse(Console.ReadLine(), out int numElements) || numElements <= 0)
-            {
-                Console.WriteLine("Invalid number of elements. Exiting...");
-                return;
-            }
+            string filename = "Q1.txt";
+            string appendText = " This is the appended by me.";
 
-            // Initialize the array with user-defined size
-            int[] array = new int[numElements];
+            // Append text to the file
+            AppendTextToFile(filename, appendText);
 
-            // Collect array elements from the user
-            Console.WriteLine("Enter the elements of the array:");
-            for (int i = 0; i < numElements; i++)
+            // Read the content of the file
+            string fileContent = ReadFile(filename);
+
+            // Display the file content
+            Console.WriteLine("File content after appending:");
+            Console.WriteLine(fileContent);
+        }
+
+        static void AppendTextToFile(string path, string text)
+        {
+            try
             {
-                Console.Write($"Element {i + 1}: ");
-                if (!int.TryParse(Console.ReadLine(), out array[i]))
+                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
                 {
-                    Console.WriteLine("Invalid input. Exiting...");
-                    return;
+                    // Move to the end of the file
+                    fs.Seek(0, SeekOrigin.End); 
+                    using (StreamWriter writer = new StreamWriter(fs))
+                    {
+                        writer.Write(text);
+                    }
+                }
+                Console.WriteLine(" appended successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error appending text to the file: " + ex.Message);
+            }
+        }
+
+        static string ReadFile(string path)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (StreamReader reader = new StreamReader(fs))
+                    {
+                        return reader.ReadToEnd();
+                    }
                 }
             }
-
-            // choice
-            Console.WriteLine("Choose an operation:");
-            Console.WriteLine("1. Sort");
-            Console.WriteLine("2. Reverse");
-            Console.Write("Enter your choice (1 or 2): ");
-            string choice = Console.ReadLine();
-
-            // Delegate variable
-            ArrayOperation operationDelegate = null;
-
-            // Assign delegate based on user choice
-            if (choice == "1")
+            catch (Exception ex)
             {
-                operationDelegate = SortArray;
+                Console.WriteLine("Error reading the file: " + ex.Message);
+                return string.Empty;
             }
-            else if (choice == "2")
-            {
-                operationDelegate = ReverseArray;
-            }
-            else
-            {
-                Console.WriteLine("Invalid choice. Exiting...");
-                return;
-            }
-
-            // Perform the operation using the delegate
-            int[] result = operationDelegate(array);
-
-            // Display the result
-            Console.WriteLine("Original Array: [{0}]", string.Join(", ", array));
-            if (choice == "1")
-            {
-                Console.WriteLine("Sorted Array: [{0}]", string.Join(", ", result));
-            }
-            else if (choice == "2")
-            {
-                Console.WriteLine("Reversed Array: [{0}]", string.Join(", ", result));
-            }
-
-            // Pause the program to view the result
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
-        }
-
-        // Method to sort an array
-        static int[] SortArray(int[] array)
-        {
-            int[] sortedArray = (int[])array.Clone();
-            Array.Sort(sortedArray);
-            return sortedArray;
-        }
-
-        // Method to reverse an array
-        static int[] ReverseArray(int[] array)
-        {
-            int[] reversedArray = (int[])array.Clone();
-            Array.Reverse(reversedArray);
-            return reversedArray;
         }
     }
 }
+
+
